@@ -1,0 +1,149 @@
+Build a full-stack web application called "Clinicians Unchained – AI Agentic Workflow for Prescription Resolution".
+
+TECH STACK:
+- Frontend: React (Vite) + Tailwind CSS (Light Theme)
+- Backend: Python (FastAPI)
+- Database: MySQL
+- AI Integration: OpenAI API
+
+BACKEND REQUIREMENTS (PYTHON FASTAPI):
+
+1. INSTALL DEPENDENCIES:
+- fastapi
+- uvicorn
+- mysql-connector-python
+- python-dotenv
+- openai
+- pydantic
+
+2. DATABASE (MYSQL):
+
+Create database: clinicians_db
+
+TABLE: prescriptions
+- id (INT AUTO_INCREMENT PRIMARY KEY)
+- drug (VARCHAR(255))
+- status (VARCHAR(50))
+- reason (TEXT)
+- action_taken (VARCHAR(100))
+- final_status (VARCHAR(100))
+- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+TABLE: logs
+- id (INT AUTO_INCREMENT PRIMARY KEY)
+- prescription_id INT
+- step VARCHAR(100)
+- message TEXT
+- timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+3. DATABASE CONNECTION:
+
+Use mysql.connector with connection pooling.
+
+4. FASTAPI ROUTES:
+
+POST /submit-prescription
+- Input: drug, reason
+- Insert into MySQL with status = "rejected"
+
+POST /process-prescription/{id}
+- Fetch prescription from DB
+- Send reason to AI
+- Get decision
+- Perform workflow
+- Update DB
+- Store logs
+
+GET /prescriptions
+- Return all prescriptions
+
+GET /logs/{id}
+- Return logs for given prescription
+
+5. AI AGENT LOGIC:
+
+Use OpenAI API:
+Input:
+"Prescription rejected because: {reason}. What should be done?"
+
+Output JSON:
+{
+  "decision": "call_insurance"
+}
+
+6. WORKFLOW ENGINE:
+
+Step 1: Fetch prescription from MySQL
+Step 2: Call AI agent
+Step 3: IF decision == "call_insurance":
+          simulate insurance call
+Step 4: IF decision == "call_pharmacy":
+          simulate pharmacy call
+Step 5: Update prescription in DB
+Step 6: Insert logs
+
+7. SIMULATED CALL FUNCTIONS:
+
+def call_insurance():
+    return {
+        "status": "approved",
+        "message": "Authorization granted"
+    }
+
+def call_pharmacy():
+    return {
+        "status": "available",
+        "message": "Drug available"
+    }
+
+8. LOGGING SYSTEM:
+
+Insert logs into logs table for:
+- AI decision
+- Call started
+- Call response
+- Final result
+
+9. FRONTEND (LIGHT THEME):
+
+- Clean white UI with soft blue accents
+- Form to submit prescription
+- Dashboard showing:
+    - Prescription list
+    - Status updates
+    - Logs
+
+10. ENV FILE:
+
+OPENAI_API_KEY=your_key
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=yourpassword
+DB_NAME=clinicians_db
+
+11. PROJECT STRUCTURE:
+
+backend/
+  main.py
+  db.py
+  models.py
+  routes/
+  services/
+
+frontend/
+  React app
+
+12. IMPORTANT:
+
+- Use async FastAPI endpoints
+- Use clean modular code
+- Add comments
+- Handle errors properly
+- Make it demo-friendly (no real APIs needed except OpenAI)
+
+OUTPUT:
+- Full working project
+- Python backend (FastAPI)
+- MySQL integration
+- React frontend
+- Instructions to run

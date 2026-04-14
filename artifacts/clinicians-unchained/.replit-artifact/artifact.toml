@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Clinicians Unchained"
+version = "1.0.0"
+id = "artifacts/clinicians-unchained"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18790
+
+[services.development]
+run = "pnpm --filter @workspace/clinicians-unchained run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/clinicians-unchained", "run", "build" ]
+publicDir = "artifacts/clinicians-unchained/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18790"
+BASE_PATH = "/"

@@ -3,13 +3,20 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Clinicians Unchained - AI Agentic Workflow for Prescription Resolution API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: prescriptions
+    description: Prescription management
+  - name: logs
+    description: Workflow logs
+  - name: dashboard
+    description: Dashboard summary
+
 paths:
   /healthz:
     get:
@@ -24,6 +31,137 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /prescriptions:
+    get:
+      operationId: listPrescriptions
+      tags: [prescriptions]
+      summary: List all prescriptions
+      description: Returns all prescriptions ordered by creation date
+      responses:
+        "200":
+          description: List of prescriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prescription"
+    post:
+      operationId: submitPrescription
+      tags: [prescriptions]
+      summary: Submit a new prescription
+      description: Submit a rejected prescription for AI-powered resolution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitPrescriptionBody"
+      responses:
+        "201":
+          description: Prescription created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prescription"
+        "400":
+          description: Bad request
+
+  /prescriptions/{id}:
+    get:
+      operationId: getPrescription
+      tags: [prescriptions]
+      summary: Get a prescription by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The prescription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prescription"
+        "404":
+          description: Not found
+
+  /prescriptions/{id}/process:
+    post:
+      operationId: processPrescription
+      tags: [prescriptions]
+      summary: Process a prescription with AI agent
+      description: Triggers the AI agentic workflow to resolve the prescription
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Processing result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessResult"
+        "404":
+          description: Not found
+        "500":
+          description: Processing error
+
+  /logs/{prescriptionId}:
+    get:
+      operationId: getLogsForPrescription
+      tags: [logs]
+      summary: Get workflow logs for a prescription
+      parameters:
+        - name: prescriptionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of logs for the prescription
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowLog"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent prescription activity
+      responses:
+        "200":
+          description: Recent activity items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +172,134 @@ components:
       required:
         - status
 
+    Prescription:
+      type: object
+      properties:
+        id:
+          type: integer
+        drug:
+          type: string
+        reason:
+          type: string
+        status:
+          type: string
+        actionTaken:
+          type: ["string", "null"]
+        finalStatus:
+          type: ["string", "null"]
+        aiDecision:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - drug
+        - reason
+        - status
+        - actionTaken
+        - finalStatus
+        - aiDecision
+        - createdAt
+        - updatedAt
+
+    SubmitPrescriptionBody:
+      type: object
+      properties:
+        drug:
+          type: string
+        reason:
+          type: string
+      required:
+        - drug
+        - reason
+
+    ProcessResult:
+      type: object
+      properties:
+        prescription:
+          $ref: "#/components/schemas/Prescription"
+        aiDecision:
+          type: string
+        callResult:
+          type: object
+          properties:
+            status:
+              type: string
+            message:
+              type: string
+          required:
+            - status
+            - message
+        logsCreated:
+          type: integer
+      required:
+        - prescription
+        - aiDecision
+        - callResult
+        - logsCreated
+
+    WorkflowLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        prescriptionId:
+          type: integer
+        step:
+          type: string
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - prescriptionId
+        - step
+        - message
+        - createdAt
+
+    DashboardSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        pending:
+          type: integer
+        approved:
+          type: integer
+        rejected:
+          type: integer
+        processing:
+          type: integer
+      required:
+        - total
+        - pending
+        - approved
+        - rejected
+        - processing
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        drug:
+          type: string
+        status:
+          type: string
+        actionTaken:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - drug
+        - status
+        - actionTaken
+        - createdAt

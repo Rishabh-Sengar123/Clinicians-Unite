@@ -3,12 +3,11 @@
  * Do not edit manually.
  * Api
  * Clinicians Unchained - AI Agentic Workflow for Prescription Resolution API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -16,7 +15,6 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * Returns all prescriptions ordered by creation date
  * @summary List all prescriptions
  */
 export const ListPrescriptionsResponseItem = zod.object({
@@ -35,7 +33,6 @@ export const ListPrescriptionsResponse = zod.array(
 );
 
 /**
- * Submit a rejected prescription for AI-powered resolution
  * @summary Submit a new prescription
  */
 export const SubmitPrescriptionBody = zod.object({
@@ -63,7 +60,6 @@ export const GetPrescriptionResponse = zod.object({
 });
 
 /**
- * Triggers the AI agentic workflow to resolve the prescription
  * @summary Process a prescription with AI agent
  */
 export const ProcessPrescriptionParams = zod.object({
@@ -132,3 +128,206 @@ export const GetRecentActivityResponseItem = zod.object({
 export const GetRecentActivityResponse = zod.array(
   GetRecentActivityResponseItem,
 );
+
+/**
+ * @summary List all doctors
+ */
+export const ListDoctorsQueryParams = zod.object({
+  specialization: zod.coerce.string().optional(),
+});
+
+export const ListDoctorsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  specialization: zod.string(),
+  availabilitySlots: zod.array(zod.string()),
+  createdAt: zod.coerce.date(),
+});
+export const ListDoctorsResponse = zod.array(ListDoctorsResponseItem);
+
+/**
+ * @summary Create a doctor
+ */
+export const CreateDoctorBody = zod.object({
+  name: zod.string(),
+  specialization: zod.string(),
+  availabilitySlots: zod.array(zod.string()),
+});
+
+/**
+ * @summary Get a doctor by ID
+ */
+export const GetDoctorParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetDoctorResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  specialization: zod.string(),
+  availabilitySlots: zod.array(zod.string()),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List all insurance companies
+ */
+export const ListInsuranceCompaniesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  supportedPlans: zod.array(zod.string()),
+  createdAt: zod.coerce.date(),
+});
+export const ListInsuranceCompaniesResponse = zod.array(
+  ListInsuranceCompaniesResponseItem,
+);
+
+/**
+ * @summary Create an insurance company
+ */
+export const CreateInsuranceCompanyBody = zod.object({
+  name: zod.string(),
+  supportedPlans: zod.array(zod.string()),
+});
+
+/**
+ * @summary List plans for a company
+ */
+export const ListInsurancePlansParams = zod.object({
+  companyId: zod.coerce.number(),
+});
+
+export const ListInsurancePlansResponseItem = zod.object({
+  id: zod.number(),
+  companyId: zod.number(),
+  planName: zod.string(),
+  coverageDetails: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListInsurancePlansResponse = zod.array(
+  ListInsurancePlansResponseItem,
+);
+
+/**
+ * @summary Create an insurance plan
+ */
+export const CreateInsurancePlanParams = zod.object({
+  companyId: zod.coerce.number(),
+});
+
+export const CreateInsurancePlanBody = zod.object({
+  planName: zod.string(),
+  coverageDetails: zod.string(),
+});
+
+/**
+ * @summary Register a new patient
+ */
+export const RegisterPatientBody = zod.object({
+  name: zod.string(),
+  email: zod.string(),
+  password: zod.string(),
+  age: zod.number(),
+  medicalHistory: zod.string().optional(),
+  insurancePlanId: zod.number().nullish(),
+});
+
+/**
+ * @summary Login and get JWT token
+ */
+export const LoginPatientBody = zod.object({
+  email: zod.string(),
+  password: zod.string(),
+});
+
+export const LoginPatientResponse = zod.object({
+  token: zod.string(),
+  patient: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string(),
+    age: zod.number(),
+    medicalHistory: zod.string().nullable(),
+    insurancePlanId: zod.number().nullable(),
+    insurancePlan: zod
+      .object({
+        id: zod.number(),
+        companyId: zod.number(),
+        planName: zod.string(),
+        coverageDetails: zod.string(),
+        createdAt: zod.coerce.date(),
+      })
+      .nullish(),
+    createdAt: zod.coerce.date(),
+  }),
+});
+
+/**
+ * @summary Get current patient profile (requires JWT)
+ */
+export const GetMyProfileResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  age: zod.number(),
+  medicalHistory: zod.string().nullable(),
+  insurancePlanId: zod.number().nullable(),
+  insurancePlan: zod
+    .object({
+      id: zod.number(),
+      companyId: zod.number(),
+      planName: zod.string(),
+      coverageDetails: zod.string(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List appointments (optionally for a patient)
+ */
+export const ListAppointmentsResponseItem = zod.object({
+  id: zod.number(),
+  patientId: zod.number(),
+  doctorId: zod.number(),
+  prescriptionId: zod.number().nullable(),
+  insurancePlanId: zod.number().nullable(),
+  status: zod.string(),
+  scheduledAt: zod.coerce.date(),
+  patientName: zod.string().nullable(),
+  doctorName: zod.string().nullable(),
+  createdAt: zod.coerce.date(),
+});
+export const ListAppointmentsResponse = zod.array(ListAppointmentsResponseItem);
+
+/**
+ * @summary Book an appointment
+ */
+export const CreateAppointmentBody = zod.object({
+  patientId: zod.number(),
+  doctorId: zod.number(),
+  prescriptionId: zod.number().nullish(),
+  insurancePlanId: zod.number().nullish(),
+  scheduledAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Confirm an appointment (triggers email notification)
+ */
+export const ConfirmAppointmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ConfirmAppointmentResponse = zod.object({
+  id: zod.number(),
+  patientId: zod.number(),
+  doctorId: zod.number(),
+  prescriptionId: zod.number().nullable(),
+  insurancePlanId: zod.number().nullable(),
+  status: zod.string(),
+  scheduledAt: zod.coerce.date(),
+  patientName: zod.string().nullable(),
+  doctorName: zod.string().nullable(),
+  createdAt: zod.coerce.date(),
+});

@@ -3,14 +3,27 @@
  * Do not edit manually.
  * Api
  * Clinicians Unchained - AI Agentic Workflow for Prescription Resolution API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export * from "./activityItem";
+export * from "./appointment";
+export * from "./authResponse";
+export * from "./createAppointmentBody";
+export * from "./createDoctorBody";
+export * from "./createInsuranceCompanyBody";
+export * from "./createInsurancePlanBody";
 export * from "./dashboardSummary";
+export * from "./doctor";
 export * from "./healthStatus";
+export * from "./insuranceCompany";
+export * from "./insurancePlan";
+export * from "./listDoctorsParams";
+export * from "./loginPatientBody";
+export * from "./patientProfile";
 export * from "./prescription";
 export * from "./processResult";
 export * from "./processResultCallResult";
+export * from "./registerPatientBody";
 export * from "./submitPrescriptionBody";
 export * from "./workflowLog";

@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * Clinicians Unchained - AI Agentic Workflow for Prescription Resolution API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
@@ -65,3 +65,106 @@ export interface ActivityItem {
   actionTaken: string | null;
   createdAt: string;
 }
+
+export interface Doctor {
+  id: number;
+  name: string;
+  specialization: string;
+  availabilitySlots: string[];
+  createdAt: string;
+}
+
+export interface CreateDoctorBody {
+  name: string;
+  specialization: string;
+  availabilitySlots: string[];
+}
+
+export interface InsuranceCompany {
+  id: number;
+  name: string;
+  supportedPlans: string[];
+  createdAt: string;
+}
+
+export interface CreateInsuranceCompanyBody {
+  name: string;
+  supportedPlans: string[];
+}
+
+export interface InsurancePlan {
+  id: number;
+  companyId: number;
+  planName: string;
+  coverageDetails: string;
+  createdAt: string;
+}
+
+export interface CreateInsurancePlanBody {
+  planName: string;
+  coverageDetails: string;
+}
+
+export interface RegisterPatientBody {
+  name: string;
+  email: string;
+  password: string;
+  age: number;
+  medicalHistory?: string;
+  /** @nullable */
+  insurancePlanId?: number | null;
+}
+
+export interface LoginPatientBody {
+  email: string;
+  password: string;
+}
+
+export interface PatientProfile {
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+  /** @nullable */
+  medicalHistory: string | null;
+  /** @nullable */
+  insurancePlanId: number | null;
+  insurancePlan?: InsurancePlan | null;
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  patient: PatientProfile;
+}
+
+export interface Appointment {
+  id: number;
+  patientId: number;
+  doctorId: number;
+  /** @nullable */
+  prescriptionId: number | null;
+  /** @nullable */
+  insurancePlanId: number | null;
+  status: string;
+  scheduledAt: string;
+  /** @nullable */
+  patientName: string | null;
+  /** @nullable */
+  doctorName: string | null;
+  createdAt: string;
+}
+
+export interface CreateAppointmentBody {
+  patientId: number;
+  doctorId: number;
+  /** @nullable */
+  prescriptionId?: number | null;
+  /** @nullable */
+  insurancePlanId?: number | null;
+  scheduledAt: string;
+}
+
+export type ListDoctorsParams = {
+  specialization?: string;
+};

@@ -6,11 +6,12 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface ActivityItem {
-  id: number;
-  drug: string;
-  status: string;
+export interface RegisterPatientBody {
+  name: string;
+  email: string;
+  password: string;
+  age: number;
+  medicalHistory?: string;
   /** @nullable */
-  actionTaken: string | null;
-  createdAt: Date;
+  insurancePlanId?: number | null;
 }

@@ -6,17 +6,19 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface Prescription {
+export interface Appointment {
   id: number;
-  drug: string;
-  reason: string;
+  patientId: number;
+  doctorId: number;
+  /** @nullable */
+  prescriptionId: number | null;
+  /** @nullable */
+  insurancePlanId: number | null;
   status: string;
+  scheduledAt: Date;
   /** @nullable */
-  actionTaken: string | null;
+  patientName: string | null;
   /** @nullable */
-  finalStatus: string | null;
-  /** @nullable */
-  aiDecision: string | null;
+  doctorName: string | null;
   createdAt: Date;
-  updatedAt: Date;
 }

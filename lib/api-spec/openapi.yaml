@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: Clinicians Unchained - AI Agentic Workflow for Prescription Resolution API
 servers:
   - url: /api
@@ -16,6 +16,14 @@ tags:
     description: Workflow logs
   - name: dashboard
     description: Dashboard summary
+  - name: doctors
+    description: Doctor management
+  - name: insurance
+    description: Insurance companies and plans
+  - name: patients
+    description: Patient authentication and profiles
+  - name: appointments
+    description: Appointment booking
 
 paths:
   /healthz:
@@ -23,7 +31,6 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -37,7 +44,6 @@ paths:
       operationId: listPrescriptions
       tags: [prescriptions]
       summary: List all prescriptions
-      description: Returns all prescriptions ordered by creation date
       responses:
         "200":
           description: List of prescriptions
@@ -51,7 +57,6 @@ paths:
       operationId: submitPrescription
       tags: [prescriptions]
       summary: Submit a new prescription
-      description: Submit a rejected prescription for AI-powered resolution
       requestBody:
         required: true
         content:
@@ -94,7 +99,6 @@ paths:
       operationId: processPrescription
       tags: [prescriptions]
       summary: Process a prescription with AI agent
-      description: Triggers the AI agentic workflow to resolve the prescription
       parameters:
         - name: id
           in: path
@@ -162,7 +166,272 @@ paths:
                 items:
                   $ref: "#/components/schemas/ActivityItem"
 
+  # ─── Doctors ────────────────────────────────────────────────────────────────
+
+  /doctors:
+    get:
+      operationId: listDoctors
+      tags: [doctors]
+      summary: List all doctors
+      parameters:
+        - name: specialization
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of doctors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Doctor"
+    post:
+      operationId: createDoctor
+      tags: [doctors]
+      summary: Create a doctor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDoctorBody"
+      responses:
+        "201":
+          description: Doctor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+
+  /doctors/{id}:
+    get:
+      operationId: getDoctor
+      tags: [doctors]
+      summary: Get a doctor by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The doctor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+        "404":
+          description: Not found
+
+  # ─── Insurance ──────────────────────────────────────────────────────────────
+
+  /insurance/companies:
+    get:
+      operationId: listInsuranceCompanies
+      tags: [insurance]
+      summary: List all insurance companies
+      responses:
+        "200":
+          description: List of insurance companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsuranceCompany"
+    post:
+      operationId: createInsuranceCompany
+      tags: [insurance]
+      summary: Create an insurance company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInsuranceCompanyBody"
+      responses:
+        "201":
+          description: Company created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceCompany"
+
+  /insurance/companies/{companyId}/plans:
+    get:
+      operationId: listInsurancePlans
+      tags: [insurance]
+      summary: List plans for a company
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsurancePlan"
+    post:
+      operationId: createInsurancePlan
+      tags: [insurance]
+      summary: Create an insurance plan
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInsurancePlanBody"
+      responses:
+        "201":
+          description: Plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsurancePlan"
+
+  # ─── Patients ────────────────────────────────────────────────────────────────
+
+  /patients/register:
+    post:
+      operationId: registerPatient
+      tags: [patients]
+      summary: Register a new patient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPatientBody"
+      responses:
+        "201":
+          description: Patient registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+        "409":
+          description: Email already exists
+
+  /patients/login:
+    post:
+      operationId: loginPatient
+      tags: [patients]
+      summary: Login and get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginPatientBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /patients/me:
+    get:
+      operationId: getMyProfile
+      tags: [patients]
+      summary: Get current patient profile (requires JWT)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Patient profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientProfile"
+        "401":
+          description: Unauthorized
+
+  # ─── Appointments ────────────────────────────────────────────────────────────
+
+  /appointments:
+    get:
+      operationId: listAppointments
+      tags: [appointments]
+      summary: List appointments (optionally for a patient)
+      responses:
+        "200":
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+    post:
+      operationId: createAppointment
+      tags: [appointments]
+      summary: Book an appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAppointmentBody"
+      responses:
+        "201":
+          description: Appointment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "400":
+          description: Validation error
+
+  /appointments/{id}/confirm:
+    post:
+      operationId: confirmAppointment
+      tags: [appointments]
+      summary: Confirm an appointment (triggers email notification)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Appointment confirmed and email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "404":
+          description: Not found
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
@@ -303,3 +572,245 @@ components:
         - status
         - actionTaken
         - createdAt
+
+    # ─── Doctor ─────────────────────────────────────────────────────────────
+
+    Doctor:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        specialization:
+          type: string
+        availabilitySlots:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - specialization
+        - availabilitySlots
+        - createdAt
+
+    CreateDoctorBody:
+      type: object
+      properties:
+        name:
+          type: string
+        specialization:
+          type: string
+        availabilitySlots:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - specialization
+        - availabilitySlots
+
+    # ─── Insurance ──────────────────────────────────────────────────────────
+
+    InsuranceCompany:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        supportedPlans:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - supportedPlans
+        - createdAt
+
+    CreateInsuranceCompanyBody:
+      type: object
+      properties:
+        name:
+          type: string
+        supportedPlans:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - supportedPlans
+
+    InsurancePlan:
+      type: object
+      properties:
+        id:
+          type: integer
+        companyId:
+          type: integer
+        planName:
+          type: string
+        coverageDetails:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - companyId
+        - planName
+        - coverageDetails
+        - createdAt
+
+    CreateInsurancePlanBody:
+      type: object
+      properties:
+        planName:
+          type: string
+        coverageDetails:
+          type: string
+      required:
+        - planName
+        - coverageDetails
+
+    # ─── Patient / Auth ─────────────────────────────────────────────────────
+
+    RegisterPatientBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        age:
+          type: integer
+        medicalHistory:
+          type: string
+        insurancePlanId:
+          type: ["integer", "null"]
+      required:
+        - name
+        - email
+        - password
+        - age
+
+    LoginPatientBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        patient:
+          $ref: "#/components/schemas/PatientProfile"
+      required:
+        - token
+        - patient
+
+    PatientProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+        medicalHistory:
+          type: ["string", "null"]
+        insurancePlanId:
+          type: ["integer", "null"]
+        insurancePlan:
+          allOf:
+            - $ref: "#/components/schemas/InsurancePlan"
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - age
+        - medicalHistory
+        - insurancePlanId
+        - createdAt
+
+    # ─── Appointment ────────────────────────────────────────────────────────
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        patientId:
+          type: integer
+        doctorId:
+          type: integer
+        prescriptionId:
+          type: ["integer", "null"]
+        insurancePlanId:
+          type: ["integer", "null"]
+        status:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        patientName:
+          type: ["string", "null"]
+        doctorName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - patientId
+        - doctorId
+        - prescriptionId
+        - insurancePlanId
+        - status
+        - scheduledAt
+        - patientName
+        - doctorName
+        - createdAt
+
+    CreateAppointmentBody:
+      type: object
+      properties:
+        patientId:
+          type: integer
+        doctorId:
+          type: integer
+        prescriptionId:
+          type: ["integer", "null"]
+        insurancePlanId:
+          type: ["integer", "null"]
+        scheduledAt:
+          type: string
+          format: date-time
+      required:
+        - patientId
+        - doctorId
+        - scheduledAt

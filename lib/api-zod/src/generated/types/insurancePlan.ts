@@ -6,11 +6,10 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface ActivityItem {
+export interface InsurancePlan {
   id: number;
-  drug: string;
-  status: string;
-  /** @nullable */
-  actionTaken: string | null;
+  companyId: number;
+  planName: string;
+  coverageDetails: string;
   createdAt: Date;
 }

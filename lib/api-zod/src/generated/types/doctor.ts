@@ -6,11 +6,10 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface ActivityItem {
+export interface Doctor {
   id: number;
-  drug: string;
-  status: string;
-  /** @nullable */
-  actionTaken: string | null;
+  name: string;
+  specialization: string;
+  availabilitySlots: string[];
   createdAt: Date;
 }

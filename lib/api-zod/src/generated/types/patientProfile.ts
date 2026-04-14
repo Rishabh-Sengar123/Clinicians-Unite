@@ -5,18 +5,17 @@
  * Clinicians Unchained - AI Agentic Workflow for Prescription Resolution API
  * OpenAPI spec version: 0.2.0
  */
+import type { InsurancePlan } from "./insurancePlan";
 
-export interface Prescription {
+export interface PatientProfile {
   id: number;
-  drug: string;
-  reason: string;
-  status: string;
+  name: string;
+  email: string;
+  age: number;
   /** @nullable */
-  actionTaken: string | null;
+  medicalHistory: string | null;
   /** @nullable */
-  finalStatus: string | null;
-  /** @nullable */
-  aiDecision: string | null;
+  insurancePlanId: number | null;
+  insurancePlan?: InsurancePlan | null;
   createdAt: Date;
-  updatedAt: Date;
 }

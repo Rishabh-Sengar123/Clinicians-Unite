@@ -9,7 +9,6 @@ const router: IRouter = Router();
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-// Expose the key ID so the frontend can initialise Razorpay checkout
 router.get("/payments/config", (_req, res): void => {
   res.json({ keyId: RAZORPAY_KEY_ID });
 });
@@ -23,7 +22,7 @@ const CreateAppointmentOrderBody = z.object({
 router.post("/payments/appointment/create-order", async (req, res): Promise<void> => {
   const parsed = CreateAppointmentOrderBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    res.status(400).json({ error: "Invalid request body" });
     return;
   }
 
@@ -41,13 +40,20 @@ router.post("/payments/appointment/create-order", async (req, res): Promise<void
     return;
   }
 
-  const order = await createOrder({
-    amountInPaise: appt.consultationFee,
-    receipt: `appt_${appt.id}`,
-    notes: { appointmentId: String(appt.id) },
-  });
+  let order: any;
+  try {
+    order = await createOrder({
+      amountInPaise: appt.consultationFee,
+      receipt: `appt_${appt.id}`,
+      notes: { appointmentId: String(appt.id) },
+    });
+  } catch (err: any) {
+    req.log.error({ err }, "Razorpay create order failed");
+    const msg = err?.error?.description || err?.message || "Failed to create payment order";
+    res.status(502).json({ error: msg });
+    return;
+  }
 
-  // Persist order ID
   await db
     .update(appointmentsTable)
     .set({ razorpayOrderId: order.id })
@@ -73,13 +79,21 @@ const VerifyAppointmentBody = z.object({
 router.post("/payments/appointment/verify", async (req, res): Promise<void> => {
   const parsed = VerifyAppointmentBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    res.status(400).json({ error: "Invalid request body" });
     return;
   }
 
   const { appointmentId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = parsed.data;
 
-  const valid = verifySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+  let valid = false;
+  try {
+    valid = verifySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+  } catch (err: any) {
+    req.log.error({ err }, "Signature verification error");
+    res.status(500).json({ error: "Signature verification failed" });
+    return;
+  }
+
   if (!valid) {
     res.status(400).json({ error: "Invalid payment signature" });
     return;
@@ -128,7 +142,7 @@ const CreatePlanOrderBody = z.object({
 router.post("/payments/insurance/create-order", async (req, res): Promise<void> => {
   const parsed = CreatePlanOrderBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    res.status(400).json({ error: "Invalid request body" });
     return;
   }
 
@@ -142,11 +156,19 @@ router.post("/payments/insurance/create-order", async (req, res): Promise<void> 
     return;
   }
 
-  const order = await createOrder({
-    amountInPaise: plan.price,
-    receipt: `plan_${plan.id}_pat_${parsed.data.patientId}`,
-    notes: { planId: String(plan.id), patientId: String(parsed.data.patientId) },
-  });
+  let order: any;
+  try {
+    order = await createOrder({
+      amountInPaise: plan.price,
+      receipt: `plan_${plan.id}_pat_${parsed.data.patientId}`,
+      notes: { planId: String(plan.id), patientId: String(parsed.data.patientId) },
+    });
+  } catch (err: any) {
+    req.log.error({ err }, "Razorpay create insurance order failed");
+    const msg = err?.error?.description || err?.message || "Failed to create payment order";
+    res.status(502).json({ error: msg });
+    return;
+  }
 
   res.json({
     orderId: order.id,
@@ -170,13 +192,21 @@ const VerifyPlanBody = z.object({
 router.post("/payments/insurance/verify", async (req, res): Promise<void> => {
   const parsed = VerifyPlanBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    res.status(400).json({ error: "Invalid request body" });
     return;
   }
 
   const { planId, patientId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = parsed.data;
 
-  const valid = verifySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+  let valid = false;
+  try {
+    valid = verifySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+  } catch (err: any) {
+    req.log.error({ err }, "Signature verification error");
+    res.status(500).json({ error: "Signature verification failed" });
+    return;
+  }
+
   if (!valid) {
     res.status(400).json({ error: "Invalid payment signature" });
     return;

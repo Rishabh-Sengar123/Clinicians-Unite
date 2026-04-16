@@ -14,6 +14,8 @@ export const insurancePlansTable = pgTable("insurance_plans", {
   companyId: integer("company_id").notNull(),
   planName: text("plan_name").notNull(),
   coverageDetails: text("coverage_details").notNull(),
+  // Price in paise (e.g. 50000 = ₹500)
+  price: integer("price").notNull().default(50000),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

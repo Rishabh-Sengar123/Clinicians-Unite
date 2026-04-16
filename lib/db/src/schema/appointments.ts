@@ -10,6 +10,11 @@ export const appointmentsTable = pgTable("appointments", {
   insurancePlanId: integer("insurance_plan_id"),
   status: text("status").notNull().default("pending"),
   scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  // Payment fields
+  consultationFee: integer("consultation_fee").notNull().default(30000),
+  paymentStatus: text("payment_status").notNull().default("unpaid"),
+  paymentId: text("payment_id"),
+  razorpayOrderId: text("razorpay_order_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
